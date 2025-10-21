@@ -1,0 +1,78 @@
+---
+globs: test/*.dart,**/test/**/*.dart
+description: Testing best practices and patterns for Flutter applications
+---
+
+# Testing Rules
+
+Follow these testing guidelines to ensure robust, maintainable Flutter applications.
+
+## Testing Strategy
+- **Running Tests:** To run tests, use `flutter test` command
+- **Test Coverage:** Aim for high test coverage across the application
+- **Test Types:** Write unit tests, widget tests, and integration tests as appropriate
+
+## Test Types and Tools
+
+### Unit Tests
+- **Unit Tests:** Use `package:test` for unit tests
+- **Domain Logic:** Write unit tests for domain logic, data layer, and state management
+- **Business Logic:** Test business logic in isolation from UI components
+
+### Widget Tests
+- **Widget Tests:** Use `package:flutter_test` for widget tests
+- **UI Components:** Write widget tests for UI components
+- **Widget Behavior:** Test widget behavior, user interactions, and state changes
+
+### Integration Tests
+- **Integration Tests:** Use `package:integration_test` for integration tests
+- **End-to-End:** For broader application validation, use integration tests to verify end-to-end user flows
+- **Package:** Use the `integration_test` package from the Flutter SDK for integration tests. Add it as a `dev_dependency` in `pubspec.yaml` by specifying `sdk: flutter`
+
+## Testing Best Practices
+
+### Test Structure
+- **Arrange-Act-Assert:** Follow the Arrange-Act-Assert (or Given-When-Then) pattern
+- **Test Naming:** Use descriptive test names that explain what is being tested
+- **Single Responsibility:** Each test should verify one specific behavior
+- **Independent Tests:** Tests should be independent and not rely on other tests
+
+### Test Data and Mocking
+- **Mocks:** Prefer fakes or stubs over mocks. If mocks are absolutely necessary, use `mockito` or `mocktail` to create mocks for dependencies
+- **Test Data:** Create test data that is realistic and covers edge cases
+- **Dependency Injection:** Use dependency injection to make classes testable
+- **Avoid Code Generation for Mocks:** While code generation is common for state management (e.g., with `freezed`), try to avoid it for mocks
+
+### Assertions
+- **Expressive Assertions:** Prefer using `package:checks` for more expressive and readable assertions over the default `matchers`
+- **Clear Error Messages:** Write assertions that provide clear error messages when they fail
+- **Multiple Assertions:** Use multiple assertions in a single test when they verify related behavior
+
+## Testing Patterns
+
+### State Management Testing
+- **Provider Testing:** Write tests for providers to ensure state management logic is correct
+- **State Changes:** Test state changes and state transitions
+- **Error States:** Test error handling in state management
+
+### Widget Testing Patterns
+- **Widget Creation:** Test that widgets can be created without errors
+- **User Interactions:** Test user interactions like taps, swipes, and text input
+- **State Updates:** Test that widgets update correctly when state changes
+- **Navigation:** Test navigation between screens
+
+### Integration Testing Patterns
+- **User Flows:** Test complete user flows from start to finish
+- **Cross-Platform:** Test that the app works correctly on different platforms
+- **Performance:** Test that the app performs well under various conditions
+
+## Test Organization
+- **Test Structure:** Organize tests in a structure that mirrors the source code
+- **Test Files:** Create test files that correspond to source files
+- **Test Groups:** Use test groups to organize related tests
+- **Test Helpers:** Create helper functions and utilities for common test operations
+
+## Continuous Integration
+- **Automated Testing:** Set up automated testing in CI/CD pipelines
+- **Test Reports:** Generate and review test coverage reports
+- **Failing Tests:** Fix failing tests immediately to maintain code quality

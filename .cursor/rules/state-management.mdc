@@ -1,0 +1,62 @@
+---
+globs: *.dart
+description: State management patterns using Riverpod and Flutter state management best practices
+---
+
+# State Management Rules
+
+Follow these state management patterns for maintainable Flutter applications.
+
+## State Management Strategy
+- **Riverpod:** Use Riverpod for state management as the primary solution
+- **Separation of Concerns:** Separate ephemeral state and app state
+- **State Management:** Use Riverpod state management solution for app state to handle the separation of concerns
+
+## State Management Patterns
+
+### ValueNotifier for Simple State
+- **ValueNotifier:** Use `ValueNotifier` with `ValueListenableBuilder` for simple, local state that involves a single value
+- **Example Pattern:**
+```dart
+// Define a ValueNotifier to hold the state
+final ValueNotifier<int> _counter = ValueNotifier<int>(0);
+
+// Use ValueListenableBuilder to listen and rebuild
+ValueListenableBuilder<int>(
+  valueListenable: _counter,
+  builder: (context, value, child) {
+    return Text('Count: $value');
+  },
+);
+```
+
+### ChangeNotifier for Complex State
+- **ChangeNotifier:** For state that is more complex or shared across multiple widgets, use `ChangeNotifier`
+- **ListenableBuilder:** Use `ListenableBuilder` to listen to changes from a `ChangeNotifier` or other `Listenable`
+
+### Streams and Futures
+- **Streams:** Use `Streams` and `StreamBuilder` for handling a sequence of asynchronous events
+- **Futures:** Use `Futures` and `FutureBuilder` for handling a single asynchronous operation that will complete in the future
+
+## Architecture Patterns
+
+### MVVM Clean Architecture
+- **MVVM Pattern:** When a more robust solution is needed, structure the app using the Model-View-ViewModel (MVVM) pattern with Clean Architecture
+- **Dependency Injection:** Use simple manual constructor dependency injection to make a class's dependencies explicit in its API, and to manage dependencies between different layers of the application
+
+### Data Flow
+- **Data Structures:** Define data structures (classes) to represent the data used in the application
+- **Data Abstraction:** Abstract data sources (e.g., API calls, database operations) using Repositories/Services to promote testability
+
+## State Management Best Practices
+- **Immutability:** Prefer immutable data structures
+- **Single Source of Truth:** Maintain a single source of truth for each piece of state
+- **State Updates:** Update state through well-defined methods or actions
+- **Error Handling:** Handle errors in state management gracefully
+- **Testing:** Make state management testable by using dependency injection and avoiding global state
+
+## Riverpod Specific Guidelines
+- **Provider Types:** Use appropriate provider types (Provider, StateProvider, StateNotifierProvider, etc.)
+- **Provider Scope:** Define appropriate scope for providers
+- **Provider Dependencies:** Manage provider dependencies clearly
+- **Provider Testing:** Write tests for providers to ensure state management logic is correct

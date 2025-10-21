@@ -1,0 +1,83 @@
+---
+globs: *.dart
+description: Navigation and routing patterns using go_router and Flutter navigation best practices
+---
+
+# Navigation and Routing Rules
+
+Follow these navigation patterns for intuitive and maintainable Flutter applications.
+
+## Navigation Strategy
+- **GoRouter:** Use the `go_router` package for declarative navigation, deep linking, and web support
+- **Declarative Navigation:** Prefer declarative navigation patterns over imperative navigation
+- **Deep Linking:** Support deep linking for better user experience and SEO
+
+## GoRouter Implementation
+
+### Basic Setup
+- **Dependency:** Add `go_router` to your `pubspec.yaml` using `flutter pub add go_router`
+- **Router Configuration:** Configure the router with clear route definitions
+- **MaterialApp Integration:** Use `MaterialApp.router` with the router configuration
+
+### Route Configuration
+- **Route Structure:** Define clear route hierarchies
+- **Path Parameters:** Use path parameters for dynamic routes (e.g., `/details/:id`)
+- **Query Parameters:** Use query parameters for optional data
+- **Nested Routes:** Use nested routes for complex navigation structures
+
+### Authentication and Redirects
+- **Authentication Redirects:** Configure `go_router`'s `redirect` property to handle authentication flows
+- **Unauthorized Access:** Ensure users are redirected to the login screen when unauthorized
+- **Post-Login Navigation:** Redirect users back to their intended destination after successful login
+
+## Navigation Patterns
+
+### GoRouter for Main Navigation
+- **Deep Linkable Routes:** Use GoRouter for screens that should be deep-linkable
+- **Route Parameters:** Pass data through route parameters when appropriate
+- **Navigation Guards:** Implement navigation guards for authentication and authorization
+
+### Navigator for Temporary Screens
+- **Short-lived Screens:** Use the built-in `Navigator` for short-lived screens that do not need to be deep-linkable
+- **Dialogs:** Use Navigator for dialogs and temporary views
+- **Modal Screens:** Use Navigator for modal presentations
+
+### Navigation Examples
+```dart
+// Push a new screen onto the stack
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => const DetailsScreen()),
+);
+
+// Pop the current screen to go back
+Navigator.pop(context);
+```
+
+## Navigation Best Practices
+
+### Route Naming
+- **Consistent Naming:** Use consistent naming conventions for routes
+- **Descriptive Names:** Use descriptive route names that indicate their purpose
+- **Hierarchical Structure:** Organize routes in a logical hierarchy
+
+### Data Passing
+- **Route Parameters:** Use route parameters for required data
+- **Query Parameters:** Use query parameters for optional data
+- **State Management:** Use state management for complex data sharing between screens
+
+### Navigation State
+- **Navigation History:** Maintain proper navigation history
+- **Back Button Handling:** Handle back button behavior appropriately
+- **Navigation Stack:** Manage navigation stack to prevent memory issues
+
+## Deep Linking Support
+- **URL Structure:** Design URL structure that is intuitive and SEO-friendly
+- **Web Support:** Ensure navigation works correctly on web platforms
+- **Platform Differences:** Handle platform-specific navigation requirements
+
+## Navigation Testing
+- **Route Testing:** Test that routes navigate to correct screens
+- **Parameter Testing:** Test that route parameters are passed correctly
+- **Deep Link Testing:** Test deep linking functionality
+- **Navigation Flow Testing:** Test complete navigation flows

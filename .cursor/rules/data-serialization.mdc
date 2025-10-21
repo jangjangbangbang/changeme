@@ -1,0 +1,134 @@
+---
+globs: *.dart
+description: Data handling, serialization, and API integration patterns
+---
+
+# Data Handling and Serialization Rules
+
+Follow these patterns for robust data handling and API integration in Flutter applications.
+
+## JSON Serialization
+
+### Code Generation Approach
+- **json_serializable:** Use `json_serializable` and `json_annotation` for parsing and encoding JSON data
+- **Field Renaming:** When encoding data, use `fieldRename: FieldRename.snake` to convert Dart's camelCase fields to snake_case JSON keys
+- **Code Generation:** Use `build_runner` for all code generation tasks
+
+### Serialization Pattern
+```dart
+// In your model file
+import 'package:json_annotation/json_annotation.dart';
+
+part 'user.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class User {
+  final String firstName;
+  final String lastName;
+
+  User({required this.firstName, required this.lastName});
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  Map<String, dynamic> toJson() => _$UserToJson(this);
+}
+```
+
+### Build Runner Usage
+- **Dependency:** Ensure that `build_runner` is listed as a dev dependency in `pubspec.yaml`
+- **Code Generation:** Use `build_runner` for all code generation tasks, such as for `json_serializable`
+- **Running Build Runner:** After modifying files that require code generation, run:
+```shell
+dart run build_runner build --delete-conflicting-outputs
+```
+
+## Data Models
+
+### Model Design
+- **Immutable Models:** Create immutable data models using `final` fields
+- **Constructor Parameters:** Use required named parameters for model constructors
+- **Equality:** Implement proper equality and hashCode for data models
+- **Validation:** Add validation logic to data models where appropriate
+
+### Data Validation
+- **Input Validation:** Validate data at the boundaries of your application
+- **Type Safety:** Use strong typing to catch errors at compile time
+- **Null Safety:** Leverage Dart's null safety features for robust data handling
+
+## API Integration
+
+### HTTP Client Setup
+- **http Package:** Use the `http` package for making HTTP requests
+- **Error Handling:** Implement comprehensive error handling for API calls
+- **Timeout Configuration:** Set appropriate timeouts for API requests
+- **Retry Logic:** Implement retry logic for transient failures
+
+### API Response Handling
+- **Response Parsing:** Parse API responses into strongly-typed Dart objects
+- **Error Responses:** Handle different types of error responses appropriately
+- **Status Codes:** Check HTTP status codes and handle them appropriately
+
+### Data Caching
+- **Local Storage:** Implement local caching for frequently accessed data
+- **Cache Invalidation:** Implement proper cache invalidation strategies
+- **Offline Support:** Design data layer to work offline when possible
+
+## Repository Pattern
+
+### Data Abstraction
+- **Repository Interface:** Define repository interfaces to abstract data sources
+- **Implementation:** Create concrete implementations for different data sources
+- **Dependency Injection:** Use dependency injection to provide repository implementations
+
+### Data Sources
+- **API Client:** Implement API client for remote data
+- **Local Database:** Implement local database for persistent storage
+- **Cache Layer:** Implement cache layer for performance optimization
+
+## Error Handling
+
+### API Error Handling
+- **Network Errors:** Handle network connectivity issues
+- **Server Errors:** Handle server-side errors appropriately
+- **Client Errors:** Handle client-side errors (400-499 status codes)
+- **Timeout Errors:** Handle request timeout scenarios
+
+### Data Validation Errors
+- **Schema Validation:** Validate data against expected schemas
+- **Type Validation:** Ensure data types match expected types
+- **Business Logic Validation:** Implement business rule validation
+
+## Logging and Monitoring
+
+### Structured Logging
+- **dart:developer:** Use the `log` function from `dart:developer` for structured logging that integrates with Dart DevTools
+- **Log Levels:** Use appropriate log levels for different types of messages
+- **Error Logging:** Log errors with sufficient context for debugging
+
+### Logging Examples
+```dart
+import 'dart:developer' as developer;
+
+// For simple messages
+developer.log('User logged in successfully.');
+
+// For structured error logging
+try {
+  // ... code that might fail
+} catch (e, s) {
+  developer.log(
+    'Failed to fetch data',
+    name: 'myapp.network',
+    level: 1000, // SEVERE
+    error: e,
+    stackTrace: s,
+  );
+}
+```
+
+## Performance Considerations
+
+### Data Processing
+- **Background Processing:** Use isolates for heavy data processing
+- **Lazy Loading:** Implement lazy loading for large datasets
+- **Pagination:** Implement pagination for large data sets
+- **Memory Management:** Be mindful of memory usage when handling large datasets

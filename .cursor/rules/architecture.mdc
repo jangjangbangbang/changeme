@@ -1,0 +1,104 @@
+---
+alwaysApply: true
+description: Application architecture patterns and project organization guidelines
+---
+
+# Architecture and Project Structure Rules
+
+Follow these architectural patterns for scalable, maintainable Flutter applications.
+
+## Application Architecture
+
+### Separation of Concerns
+- **MVC/MVVM Pattern:** Aim for separation of concerns similar to MVC/MVVM, with defined Model, View, and ViewModel/Controller roles
+- **Logical Layers:** Organize the project into logical layers:
+  - **Presentation:** widgets, screens
+  - **Domain:** business logic classes
+  - **Data:** model classes, API clients
+  - **Core:** shared classes, utilities, and extension types
+
+### Feature-based Organization
+- **Feature Organization:** For larger projects, organize code by feature, where each feature has its own presentation, domain, and data subfolders
+- **Improves Navigability:** This improves navigability and scalability
+- **Feature Isolation:** Each feature should be self-contained with minimal dependencies on other features
+
+## Project Structure Guidelines
+
+### Standard Flutter Structure
+- **Entry Point:** The main entry point is [lib/main.dart](mdc:lib/main.dart)
+- **Standard Structure:** Follow standard Flutter project structure with `lib/main.dart` as the primary application entry point
+- **Feature Folders:** Organize features in separate folders within the `lib` directory
+
+### Layer Organization
+```
+lib/
+├── main.dart
+├── core/
+│   ├── constants/
+│   ├── utils/
+│   ├── extensions/
+│   └── shared/
+├── features/
+│   ├── feature_a/
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   └── feature_b/
+│       ├── data/
+│       ├── domain/
+│       └── presentation/
+└── shared/
+    ├── widgets/
+    ├── services/
+    └── models/
+```
+
+## Dependency Management
+
+### Dependency Injection
+- **Manual Constructor Injection:** Use simple manual constructor dependency injection to make a class's dependencies explicit in its API
+- **Manage Dependencies:** Use dependency injection to manage dependencies between different layers of the application
+- **Testability:** Make classes testable by injecting dependencies rather than creating them internally
+
+### Data Flow Architecture
+- **Data Structures:** Define data structures (classes) to represent the data used in the application
+- **Data Abstraction:** Abstract data sources (e.g., API calls, database operations) using Repositories/Services to promote testability
+- **Repository Pattern:** Use repository pattern to abstract data sources and make them testable
+
+## Code Organization Principles
+
+### Library Organization
+- **Related Classes:** Define related classes within the same library file
+- **Large Libraries:** For large libraries, export smaller, private libraries from a single top-level library
+- **Group Related Libraries:** Group related libraries in the same folder
+
+### API Design
+- **User Perspective:** Design APIs from the perspective of the person who will be using them. The API should be intuitive and easy to use correctly
+- **Documentation:** Good documentation is a part of good API design. It should be clear, concise, and provide examples
+- **Consistent Interface:** Maintain consistent interfaces across similar components
+
+## State Management Architecture
+
+### State Separation
+- **Ephemeral State:** Handle local widget state with StatefulWidget or local state management
+- **App State:** Use Riverpod for global application state
+- **State Location:** Keep state as close to where it's used as possible
+- **State Updates:** Define clear patterns for state updates and mutations
+
+### Data Flow Patterns
+- **Unidirectional Data Flow:** Implement unidirectional data flow where data flows down and events flow up
+- **State Immutability:** Prefer immutable state objects
+- **State Updates:** Use well-defined actions or methods to update state
+
+## Testing Architecture
+
+### Testable Design
+- **Dependency Injection:** Use dependency injection to make classes testable
+- **Interface Segregation:** Define clear interfaces for dependencies
+- **Mocking:** Design classes to be easily mockable for testing
+- **Separation of Concerns:** Keep business logic separate from UI logic
+
+### Test Organization
+- **Mirror Structure:** Organize tests in a structure that mirrors the source code
+- **Test Categories:** Separate unit tests, widget tests, and integration tests
+- **Test Utilities:** Create shared test utilities and helpers
