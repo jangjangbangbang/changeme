@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/router/navigation_helper.dart';
 import '../providers/user_state_providers.dart';
 import '../widgets/user_card.dart';
 import '../widgets/user_list_loading.dart';
 import '../widgets/user_list_error.dart';
-import 'user_detail_screen.dart';
 
 /// Screen displaying a list of users
 class UserListScreen extends ConsumerStatefulWidget {
@@ -90,9 +90,6 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
   }
 
   void _navigateToUserDetail(BuildContext context, int userId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => UserDetailScreen(userId: userId)),
-    );
+    NavigationHelper.goToUserDetail(context, userId);
   }
 }
