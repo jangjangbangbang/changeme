@@ -1,14 +1,9 @@
 {
-    "dart.flutterSdkPath": "/path/to/flutter",
-    "dart.debugExternalLibraries": false,
-    "dart.debugSdkLibraries": false,
-    "dart.previewFlutterUiGuides": true,
-    "dart.previewFlutterUiGuidesCustomTracking": true,
-    "dart.flutterHotReloadOnSave": "all",
-    "dart.openDevTools": "flutter",
-    "dart.flutterCreateAndroidLanguage": "kotlin",
-    "dart.flutterCreateIOSLanguage": "swift",
-    "dart.flutterCreateOrganization": "com.example",
+    //TODO: Update this to the correct path to the Flutter SDK
+    "dart.flutterSdkPath": "/Users/jangdsantos/.puro/envs/stable/flutter",
+    //TODO: Update this to the correct organization
+    "dart.flutterCreateOrganization": "com.changeme",
+    //TODO: Update this to the correct platforms
     "dart.flutterCreatePlatforms": [
         "android",
         "ios",
