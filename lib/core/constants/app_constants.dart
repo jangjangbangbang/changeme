@@ -1,11 +1,9 @@
+import '../config/app_config.dart';
+import '../config/environment_detector.dart';
+
 /// Application-wide constants
 class AppConstants {
-  // API Configuration
-  static const String baseUrl = 'https://jsonplaceholder.typicode.com';
-  static const Duration apiTimeout = Duration(seconds: 30);
-
   // App Configuration
-  static const String appName = 'Clean Architecture Demo';
   static const String appVersion = '1.0.0';
 
   // Storage Keys
@@ -15,4 +13,19 @@ class AppConstants {
   // Pagination
   static const int defaultPageSize = 20;
   static const int maxPageSize = 100;
+
+  // Environment-specific configuration
+  static AppConfig get config => EnvironmentDetector.getConfig();
+
+  // API Configuration (from environment config)
+  static String get baseUrl => config.baseUrl;
+  static Duration get apiTimeout => config.apiTimeout;
+  static String get appName => config.appName;
+  static String get apiKey => config.apiKey;
+  static bool get isDebugMode => config.isDebugMode;
+  static String get logLevel => config.logLevel;
+  static bool get enableAnalytics => config.enableAnalytics;
+  static bool get enableCrashReporting => config.enableCrashReporting;
+  static String get databaseUrl => config.databaseUrl;
+  static Map<String, String> get additionalHeaders => config.additionalHeaders;
 }

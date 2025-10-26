@@ -1,0 +1,505 @@
+---
+description: Environment configuration patterns and best practices for Flutter applications
+---
+
+# Environment Configuration Patterns
+
+Follow these patterns for managing environment-specific configuration in Flutter applications.
+
+## Configuration Architecture
+
+### Environment Enum
+```dart
+enum Environment {
+  development,
+  staging,
+  production;
+  
+  bool get isDevelopment => this == Environment.development;
+  bool get isStaging => this == Environment.staging;
+  bool get isProduction => this == Environment.production;
+  
+  String get name {
+    switch (this) {
+      case Environment.development:
+        return 'Development';
+      case Environment.staging:
+        return 'Staging';
+      case Environment.production:
+        return 'Production';
+    }
+  }
+}
+```
+
+### Configuration Interface
+```dart
+abstract class EnvironmentConfig {
+  Environment get environment;
+  String get appName;
+  String get baseUrl;
+  String get apiKey;
+  bool get isDebugMode;
+  Duration get apiTimeout;
+  String get logLevel;
+  bool get enableAnalytics;
+  bool get enableCrashReporting;
+  String get databaseUrl;
+  Map<String, String> get additionalHeaders;
+}
+```
+
+## Environment-Specific Implementations
+
+### Development Configuration
+```dart
+class DevelopmentConfig implements EnvironmentConfig {
+  @override
+  Environment get environment => Environment.development;
+  
+  @override
+  String get appName => 'MyApp Dev';
+  
+  @override
+  String get baseUrl => 'https://dev-api.example.com';
+  
+  @override
+  String get apiKey => 'dev-api-key-12345';
+  
+  @override
+  bool get isDebugMode => true;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 30);
+  
+  @override
+  String get logLevel => 'DEBUG';
+  
+  @override
+  bool get enableAnalytics => false;
+  
+  @override
+  bool get enableCrashReporting => false;
+  
+  @override
+  String get databaseUrl => 'sqlite://dev.db';
+  
+  @override
+  Map<String, String> get additionalHeaders => {
+    'X-Environment': 'development',
+    'X-Debug': 'true',
+  };
+}
+```
+
+### Staging Configuration
+```dart
+class StagingConfig implements EnvironmentConfig {
+  @override
+  Environment get environment => Environment.staging;
+  
+  @override
+  String get appName => 'MyApp Staging';
+  
+  @override
+  String get baseUrl => 'https://staging-api.example.com';
+  
+  @override
+  String get apiKey => 'staging-api-key-67890';
+  
+  @override
+  bool get isDebugMode => false;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 15);
+  
+  @override
+  String get logLevel => 'INFO';
+  
+  @override
+  bool get enableAnalytics => true;
+  
+  @override
+  bool get enableCrashReporting => true;
+  
+  @override
+  String get databaseUrl => 'postgresql://staging-db.example.com';
+  
+  @override
+  Map<String, String> get additionalHeaders => {
+    'X-Environment': 'staging',
+    'X-Version': '1.0.0',
+  };
+}
+```
+
+### Production Configuration
+```dart
+class ProductionConfig implements EnvironmentConfig {
+  @override
+  Environment get environment => Environment.production;
+  
+  @override
+  String get appName => 'MyApp';
+  
+  @override
+  String get baseUrl => 'https://api.example.com';
+  
+  @override
+  String get apiKey => 'prod-api-key-abcdef';
+  
+  @override
+  bool get isDebugMode => false;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 10);
+  
+  @override
+  String get logLevel => 'WARNING';
+  
+  @override
+  bool get enableAnalytics => true;
+  
+  @override
+  bool get enableCrashReporting => true;
+  
+  @override
+  String get databaseUrl => 'postgresql://prod-db.example.com';
+  
+  @override
+  Map<String, String> get additionalHeaders => {
+    'X-Environment': 'production',
+    'X-Version': '1.0.0',
+  };
+}
+```
+
+## Configuration Factory
+
+### Environment Detection
+```dart
+class EnvironmentDetector {
+  static Environment get currentEnvironment {
+    const environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
+    
+    switch (environment.toLowerCase()) {
+      case 'development':
+        return Environment.development;
+      case 'staging':
+        return Environment.staging;
+      case 'production':
+        return Environment.production;
+      default:
+        return Environment.development;
+    }
+  }
+  
+  static EnvironmentConfig getConfig() {
+    switch (currentEnvironment) {
+      case Environment.development:
+        return DevelopmentConfig();
+      case Environment.staging:
+        return StagingConfig();
+      case Environment.production:
+        return ProductionConfig();
+    }
+  }
+}
+```
+
+## Dependency Injection
+
+### Configuration Provider
+```dart
+// Using Riverpod for dependency injection
+final environmentConfigProvider = Provider<EnvironmentConfig>((ref) {
+  return EnvironmentDetector.getConfig();
+});
+
+final environmentProvider = Provider<Environment>((ref) {
+  return ref.watch(environmentConfigProvider).environment;
+});
+
+final baseUrlProvider = Provider<String>((ref) {
+  return ref.watch(environmentConfigProvider).baseUrl;
+});
+
+final apiKeyProvider = Provider<String>((ref) {
+  return ref.watch(environmentConfigProvider).apiKey;
+});
+```
+
+### Service Configuration
+```dart
+// HTTP client configuration based on environment
+final httpClientProvider = Provider<Dio>((ref) {
+  final config = ref.watch(environmentConfigProvider);
+  
+  final dio = Dio();
+  
+  // Configure base URL
+  dio.options.baseUrl = config.baseUrl;
+  dio.options.connectTimeout = config.apiTimeout;
+  dio.options.receiveTimeout = config.apiTimeout;
+  
+  // Add environment-specific headers
+  dio.options.headers.addAll(config.additionalHeaders);
+  dio.options.headers['Authorization'] = 'Bearer ${config.apiKey}';
+  
+  // Add interceptors based on environment
+  if (config.isDebugMode) {
+    dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      logPrint: (log) => debugPrint(log.toString()),
+    ));
+  }
+  
+  return dio;
+});
+```
+
+## Environment-Specific Features
+
+### Debug Features
+```dart
+class DebugFeatures {
+  static bool get showDebugOverlay {
+    final config = EnvironmentDetector.getConfig();
+    return config.isDebugMode && config.environment == Environment.development;
+  }
+  
+  static bool get enableHotReload {
+    final config = EnvironmentDetector.getConfig();
+    return config.environment == Environment.development;
+  }
+  
+  static bool get showPerformanceMetrics {
+    final config = EnvironmentDetector.getConfig();
+    return config.isDebugMode;
+  }
+}
+```
+
+### Analytics Configuration
+```dart
+class AnalyticsConfig {
+  static bool get isEnabled {
+    final config = EnvironmentDetector.getConfig();
+    return config.enableAnalytics;
+  }
+  
+  static String get trackingId {
+    final config = EnvironmentDetector.getConfig();
+    switch (config.environment) {
+      case Environment.development:
+        return 'GA_DEV_TRACKING_ID';
+      case Environment.staging:
+        return 'GA_STAGING_TRACKING_ID';
+      case Environment.production:
+        return 'GA_PROD_TRACKING_ID';
+    }
+  }
+}
+```
+
+## Build Configuration
+
+### Flutter Build Commands
+```bash
+# Development build
+flutter run --dart-define=ENVIRONMENT=development -t lib/main_development.dart
+
+# Staging build
+flutter run --dart-define=ENVIRONMENT=staging -t lib/main_staging.dart
+
+# Production build
+flutter build apk --dart-define=ENVIRONMENT=production -t lib/main_production.dart
+```
+
+### Android Build Configuration
+```gradle
+// android/app/build.gradle
+android {
+    flavorDimensions "environment"
+    
+    productFlavors {
+        development {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            buildConfigField "String", "ENVIRONMENT", '"development"'
+        }
+        
+        staging {
+            dimension "environment"
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-staging"
+            buildConfigField "String", "ENVIRONMENT", '"staging"'
+        }
+        
+        production {
+            dimension "environment"
+            buildConfigField "String", "ENVIRONMENT", '"production"'
+        }
+    }
+}
+```
+
+### iOS Build Configuration
+```swift
+// ios/Runner/Config/Development.xcconfig
+ENVIRONMENT = development
+BUNDLE_IDENTIFIER = com.example.myapp.dev
+
+// ios/Runner/Config/Staging.xcconfig
+ENVIRONMENT = staging
+BUNDLE_IDENTIFIER = com.example.myapp.staging
+
+// ios/Runner/Config/Production.xcconfig
+ENVIRONMENT = production
+BUNDLE_IDENTIFIER = com.example.myapp
+```
+
+## Testing Configuration
+
+### Environment-Specific Tests
+```dart
+// test/helpers/test_config.dart
+class TestConfig implements EnvironmentConfig {
+  @override
+  Environment get environment => Environment.development;
+  
+  @override
+  String get appName => 'Test App';
+  
+  @override
+  String get baseUrl => 'https://test-api.example.com';
+  
+  @override
+  String get apiKey => 'test-api-key';
+  
+  @override
+  bool get isDebugMode => true;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 5);
+  
+  @override
+  String get logLevel => 'DEBUG';
+  
+  @override
+  bool get enableAnalytics => false;
+  
+  @override
+  bool get enableCrashReporting => false;
+  
+  @override
+  String get databaseUrl => 'sqlite://test.db';
+  
+  @override
+  Map<String, String> get additionalHeaders => {
+    'X-Environment': 'test',
+  };
+}
+```
+
+### Test Setup
+```dart
+// test/setup.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'helpers/test_config.dart';
+
+void main() {
+  setUpAll(() {
+    // Set up test environment
+    TestWidgetsFlutterBinding.ensureInitialized();
+  });
+  
+  setUp(() {
+    // Configure test environment
+    // This would typically involve setting up mocks and test data
+  });
+}
+```
+
+## Security Best Practices
+
+### Environment-Specific Security
+- **API Keys:** Use different API keys for each environment
+- **Database Credentials:** Use separate databases for each environment
+- **Third-party Services:** Configure different service accounts
+- **Security Headers:** Implement environment-specific security configurations
+
+### Secret Management
+```dart
+class SecretManager {
+  static String getApiKey() {
+    final config = EnvironmentDetector.getConfig();
+    
+    switch (config.environment) {
+      case Environment.development:
+        return const String.fromEnvironment('DEV_API_KEY');
+      case Environment.staging:
+        return const String.fromEnvironment('STAGING_API_KEY');
+      case Environment.production:
+        return const String.fromEnvironment('PROD_API_KEY');
+    }
+  }
+  
+  static String getDatabaseUrl() {
+    final config = EnvironmentDetector.getConfig();
+    
+    switch (config.environment) {
+      case Environment.development:
+        return 'sqlite://dev.db';
+      case Environment.staging:
+        return const String.fromEnvironment('STAGING_DB_URL');
+      case Environment.production:
+        return const String.fromEnvironment('PROD_DB_URL');
+    }
+  }
+}
+```
+
+## Monitoring and Logging
+
+### Environment-Specific Logging
+```dart
+class Logger {
+  static void log(String message, {String? level}) {
+    final config = EnvironmentDetector.getConfig();
+    
+    // Only log if the level is appropriate for the environment
+    if (_shouldLog(level, config.logLevel)) {
+      if (config.isDebugMode) {
+        debugPrint('[$level] $message');
+      } else {
+        // Use production logging service
+        _logToProductionService(message, level);
+      }
+    }
+  }
+  
+  static bool _shouldLog(String? messageLevel, String configLevel) {
+    const levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR'];
+    final messageIndex = levels.indexOf(messageLevel ?? 'INFO');
+    final configIndex = levels.indexOf(configLevel);
+    return messageIndex >= configIndex;
+  }
+}
+```
+
+## Best Practices
+
+### Configuration Management
+- **Centralized Configuration:** Keep all environment-specific configuration in dedicated classes
+- **Type Safety:** Use strongly-typed configuration classes
+- **Validation:** Validate configuration values at startup
+- **Documentation:** Document environment-specific requirements and setup
+
+### Environment Promotion
+- **Development → Staging:** Promote tested features from development to staging
+- **Staging → Production:** Promote validated features from staging to production
+- **Rollback Strategy:** Implement rollback strategies for each environment
+- **Monitoring:** Monitor deployments across all environments

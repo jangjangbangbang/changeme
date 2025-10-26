@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../data/auth_repository.dart';
+import '../core/config/app_config.dart';
+import '../core/config/environment_detector.dart';
 import 'route_paths.dart';
 import '../features/auth/login_screen.dart';
 import '../features/home/home_screen.dart';
@@ -17,6 +19,24 @@ final authRepoProvider = Provider<AuthRepository>((ref) {
   final repo = AuthRepository();
   ref.onDispose(repo.dispose);
   return repo;
+});
+
+// Environment configuration provider
+final appConfigProvider = Provider<AppConfig>((ref) {
+  return EnvironmentDetector.getConfig();
+});
+
+// Environment-specific providers
+final environmentProvider = Provider<String>((ref) {
+  return ref.watch(appConfigProvider).environment.name;
+});
+
+final baseUrlProvider = Provider<String>((ref) {
+  return ref.watch(appConfigProvider).baseUrl;
+});
+
+final isDebugModeProvider = Provider<bool>((ref) {
+  return ref.watch(appConfigProvider).isDebugMode;
 });
 
 // 2) Derived auth state
@@ -47,9 +67,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 // 3) The GoRouter itself, exposed as a provider
 final goRouterProvider = Provider<GoRouter>((ref) {
   final repo = ref.watch(authRepoProvider);
-  final refreshListenable = GoRouterRefreshStream(
-    ref.watch(authStateStreamProvider.stream),
-  );
+  final refreshListenable = GoRouterRefreshStream(repo.authStateChanges());
   ref.onDispose(refreshListenable.dispose);
 
   return GoRouter(

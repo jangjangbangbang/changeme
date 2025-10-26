@@ -1,0 +1,484 @@
+---
+description: VS Code debugging configuration for Flutter app flavors and development workflows
+---
+
+# VS Code Debugging Configuration
+
+Follow these patterns for configuring VS Code debugging for Flutter applications with multiple flavors and environments.
+
+## Launch Configuration
+
+### Basic Launch.json Setup
+Create `.vscode/launch.json` in your project root:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Development Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "debug"
+    }
+  ]
+}
+```
+
+### Complete Launch Configuration
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Development Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development",
+        "--dart-define=DEBUG_MODE=true"
+      ],
+      "flutterMode": "debug",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "Development Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Staging Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_staging.dart",
+      "args": [
+        "--flavor",
+        "staging",
+        "--dart-define=ENVIRONMENT=staging",
+        "--dart-define=DEBUG_MODE=false"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Staging Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_staging.dart",
+      "args": [
+        "--flavor",
+        "staging",
+        "--dart-define=ENVIRONMENT=staging"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Production Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=ENVIRONMENT=production",
+        "--dart-define=DEBUG_MODE=false"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Production Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=ENVIRONMENT=production"
+      ],
+      "flutterMode": "profile"
+    }
+  ]
+}
+```
+
+## Platform-Specific Configurations
+
+### Web Development
+```json
+{
+  "name": "Web Development",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development",
+    "--web-renderer",
+    "html"
+  ],
+  "flutterMode": "debug",
+  "deviceId": "chrome"
+}
+```
+
+### iOS Development
+```json
+{
+  "name": "iOS Development",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development"
+  ],
+  "flutterMode": "debug",
+  "deviceId": "ios"
+}
+```
+
+### Android Development
+```json
+{
+  "name": "Android Development",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development"
+  ],
+  "flutterMode": "debug",
+  "deviceId": "android"
+}
+```
+
+### macOS Development
+```json
+{
+  "name": "macOS Development",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development"
+  ],
+  "flutterMode": "debug",
+  "deviceId": "macos"
+}
+```
+
+### Windows Development
+```json
+{
+  "name": "Windows Development",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development"
+  ],
+  "flutterMode": "debug",
+  "deviceId": "windows"
+}
+```
+
+### Linux Development
+```json
+{
+  "name": "Linux Development",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development"
+  ],
+  "flutterMode": "debug",
+  "deviceId": "linux"
+}
+```
+
+## Compound Configurations
+
+### Multi-Environment Debugging
+```json
+{
+  "compounds": [
+    {
+      "name": "All Environments Debug",
+      "configurations": [
+        "Development Debug",
+        "Staging Debug",
+        "Production Debug"
+      ]
+    },
+    {
+      "name": "Development Multi-Platform",
+      "configurations": [
+        "Web Development",
+        "iOS Development",
+        "Android Development"
+      ]
+    },
+    {
+      "name": "All Platforms Development",
+      "configurations": [
+        "Web Development",
+        "iOS Development",
+        "Android Development",
+        "macOS Development",
+        "Windows Development",
+        "Linux Development"
+      ]
+    }
+  ]
+}
+```
+
+## Advanced Launch Configurations
+
+### Environment-Specific Variables
+```json
+{
+  "name": "Development with Custom Variables",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development",
+    "--dart-define=DEBUG_MODE=true",
+    "--dart-define=API_URL=https://dev-api.example.com",
+    "--dart-define=API_KEY=dev-api-key",
+    "--dart-define=LOG_LEVEL=DEBUG"
+  ],
+  "flutterMode": "debug"
+}
+```
+
+### Performance Testing
+```json
+{
+  "name": "Performance Testing",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_staging.dart",
+  "args": [
+    "--flavor",
+    "staging",
+    "--dart-define=ENVIRONMENT=staging",
+    "--dart-define=ENABLE_PERFORMANCE_MONITORING=true"
+  ],
+  "flutterMode": "profile"
+}
+```
+
+### Integration Testing
+```json
+{
+  "name": "Integration Testing",
+  "type": "dart",
+  "request": "launch",
+  "program": "test/integration_test/app_test.dart",
+  "args": [
+    "--dart-define=ENVIRONMENT=test"
+  ],
+  "flutterMode": "debug"
+}
+```
+
+## Debugging Features
+
+### Breakpoint Configuration
+```json
+{
+  "name": "Development with Breakpoints",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development"
+  ],
+  "flutterMode": "debug",
+  "stopOnEntry": true,
+  "justMyCode": false
+}
+```
+
+### Hot Reload Configuration
+```json
+{
+  "name": "Development Hot Reload",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development",
+    "--hot"
+  ],
+  "flutterMode": "debug"
+}
+```
+
+### Memory Profiling
+```json
+{
+  "name": "Memory Profiling",
+  "type": "dart",
+  "request": "launch",
+  "program": "lib/main_development.dart",
+  "args": [
+    "--flavor",
+    "development",
+    "--dart-define=ENVIRONMENT=development",
+    "--dart-define=ENABLE_MEMORY_PROFILING=true"
+  ],
+  "flutterMode": "profile"
+}
+```
+
+## VS Code Settings
+
+### Settings.json Configuration
+Create `.vscode/settings.json` for Flutter development:
+
+```json
+{
+  "dart.flutterSdkPath": "/path/to/flutter",
+  "dart.debugExternalLibraries": false,
+  "dart.debugSdkLibraries": false,
+  "dart.previewFlutterUiGuides": true,
+  "dart.previewFlutterUiGuidesCustomTracking": true,
+  "dart.flutterHotReloadOnSave": "always",
+  "dart.flutterHotRestartOnSave": "never",
+  "dart.openDevTools": "flutter",
+  "dart.flutterCreateAndroidLanguage": "kotlin",
+  "dart.flutterCreateIOSLanguage": "swift",
+  "dart.flutterCreateOrganization": "com.example",
+  "dart.flutterCreatePlatforms": [
+    "android",
+    "ios",
+    "web"
+  ]
+}
+```
+
+### Workspace Settings
+```json
+{
+  "dart.flutterSdkPath": "/path/to/flutter",
+  "dart.debugExternalLibraries": false,
+  "dart.debugSdkLibraries": false,
+  "dart.previewFlutterUiGuides": true,
+  "dart.flutterHotReloadOnSave": "always",
+  "dart.openDevTools": "flutter"
+}
+```
+
+## Debugging Workflows
+
+### Development Workflow
+1. **Select Configuration:** Choose "Development Debug" from the debug dropdown
+2. **Set Breakpoints:** Place breakpoints in your code
+3. **Start Debugging:** Press F5 or click the debug button
+4. **Hot Reload:** Use Ctrl+S (Cmd+S on Mac) for hot reload
+5. **Hot Restart:** Use Ctrl+Shift+F5 (Cmd+Shift+F5 on Mac) for hot restart
+
+### Testing Workflow
+1. **Select Test Configuration:** Choose appropriate test configuration
+2. **Run Tests:** Use the test runner or debug configuration
+3. **Debug Tests:** Set breakpoints in test files
+4. **View Results:** Check test results in the output panel
+
+### Performance Testing Workflow
+1. **Select Profile Configuration:** Choose "Development Profile" or "Staging Profile"
+2. **Start Profiling:** Launch the app in profile mode
+3. **Monitor Performance:** Use Flutter DevTools for performance monitoring
+4. **Analyze Results:** Review performance metrics and identify bottlenecks
+
+## Debugging Best Practices
+
+### Environment-Specific Debugging
+- **Development:** Use debug mode with full logging and debugging features
+- **Staging:** Use profile mode for performance testing
+- **Production:** Use release mode for final testing
+
+### Breakpoint Strategy
+- **Critical Paths:** Set breakpoints in critical business logic
+- **Error Handling:** Set breakpoints in error handling code
+- **State Changes:** Set breakpoints in state management code
+- **API Calls:** Set breakpoints in network request code
+
+### Hot Reload Optimization
+- **Save Frequently:** Use Ctrl+S (Cmd+S on Mac) for hot reload
+- **Restart When Needed:** Use Ctrl+Shift+F5 (Cmd+Shift+F5 on Mac) for hot restart
+- **Clear Cache:** Use "Flutter: Clean" command when needed
+
+### Performance Monitoring
+- **Use Profile Mode:** Test performance in profile mode
+- **Monitor Memory:** Watch memory usage during development
+- **Check Performance:** Use Flutter DevTools for performance analysis
+- **Optimize Code:** Optimize code based on performance metrics
+
+## Troubleshooting
+
+### Common Issues
+- **Device Not Found:** Check device connection and Flutter doctor
+- **Build Errors:** Clean and rebuild the project
+- **Hot Reload Issues:** Restart the debug session
+- **Breakpoint Issues:** Check if breakpoints are in the correct files
+
+### Debug Commands
+```bash
+# Check Flutter doctor
+flutter doctor
+
+# Clean project
+flutter clean
+
+# Get dependencies
+flutter pub get
+
+# Check devices
+flutter devices
+
+# Run specific configuration
+flutter run --flavor development -t lib/main_development.dart
+```
+
+### VS Code Commands
+- **Flutter: Clean:** Clean the Flutter project
+- **Flutter: Get Dependencies:** Get Flutter dependencies
+- **Flutter: Doctor:** Run Flutter doctor
+- **Dart: Restart Analysis Server:** Restart the Dart analysis server
+- **Flutter: Hot Reload:** Trigger hot reload
+- **Flutter: Hot Restart:** Trigger hot restart

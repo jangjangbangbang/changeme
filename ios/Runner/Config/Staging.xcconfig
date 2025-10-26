@@ -1,0 +1,7 @@
+ENVIRONMENT = staging
+BUNDLE_IDENTIFIER = com.changeme.app.changeme.staging
+APP_NAME = MyApp Staging
+BASE_URL = https://staging-api.example.com
+API_KEY = staging-api-key
+DEBUG_MODE = false
+ENABLE_ANALYTICS = true

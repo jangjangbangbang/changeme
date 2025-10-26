@@ -1,0 +1,746 @@
+---
+description: Build and deployment patterns for Flutter app flavors across different environments
+---
+
+# Build and Deployment Patterns
+
+Follow these patterns for building and deploying Flutter applications with different flavors across development, staging, and production environments.
+
+## VS Code Launch Configuration
+
+### Launch.json Setup
+Create `.vscode/launch.json` for debugging different flavors:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Development Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development",
+        "--dart-define=DEBUG_MODE=true"
+      ],
+      "flutterMode": "debug",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "Development Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Staging Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_staging.dart",
+      "args": [
+        "--flavor",
+        "staging",
+        "--dart-define=ENVIRONMENT=staging",
+        "--dart-define=DEBUG_MODE=false"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Staging Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_staging.dart",
+      "args": [
+        "--flavor",
+        "staging",
+        "--dart-define=ENVIRONMENT=staging"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Production Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=ENVIRONMENT=production",
+        "--dart-define=DEBUG_MODE=false"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Production Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=ENVIRONMENT=production"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Web Development",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development",
+        "--web-renderer",
+        "html"
+      ],
+      "flutterMode": "debug",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "iOS Development",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "debug",
+      "deviceId": "ios"
+    },
+    {
+      "name": "Android Development",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "debug",
+      "deviceId": "android"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Environments Debug",
+      "configurations": [
+        "Development Debug",
+        "Staging Debug",
+        "Production Debug"
+      ]
+    },
+    {
+      "name": "Development Multi-Platform",
+      "configurations": [
+        "Web Development",
+        "iOS Development",
+        "Android Development"
+      ]
+    }
+  ]
+}
+```
+
+### Launch Configuration Features
+- **Environment-Specific Debugging:** Each flavor has debug and profile configurations
+- **Platform-Specific Configurations:** Separate configs for web, iOS, and Android
+- **Dart Defines:** Pass environment variables and debug flags
+- **Compound Configurations:** Run multiple environments or platforms simultaneously
+- **Device Selection:** Specify target devices for debugging
+
+## Build Configuration
+
+### Flutter Build Commands
+```bash
+# Development builds
+flutter run --flavor development -t lib/main_development.dart
+flutter run --flavor development -t lib/main_development.dart --debug
+flutter run --flavor development -t lib/main_development.dart --profile
+
+# Staging builds
+flutter run --flavor staging -t lib/main_staging.dart
+flutter run --flavor staging -t lib/main_staging.dart --debug
+flutter run --flavor staging -t lib/main_staging.dart --profile
+
+# Production builds
+flutter build apk --flavor production -t lib/main_production.dart
+flutter build appbundle --flavor production -t lib/main_production.dart
+flutter build ios --flavor production -t lib/main_production.dart
+```
+
+### Environment-Specific Build Scripts
+```bash
+#!/bin/bash
+# scripts/build_development.sh
+flutter clean
+flutter pub get
+flutter run --flavor development -t lib/main_development.dart --debug
+
+#!/bin/bash
+# scripts/build_staging.sh
+flutter clean
+flutter pub get
+flutter build apk --flavor staging -t lib/main_staging.dart --release
+
+#!/bin/bash
+# scripts/build_production.sh
+flutter clean
+flutter pub get
+flutter build appbundle --flavor production -t lib/main_production.dart --release
+```
+
+## Android Build Configuration
+
+### Build Gradle Configuration
+```gradle
+// android/app/build.gradle
+android {
+    compileSdkVersion 34
+    
+    defaultConfig {
+        applicationId "com.example.myapp"
+        minSdkVersion 21
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+    
+    flavorDimensions "environment"
+    
+    productFlavors {
+        development {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            buildConfigField "String", "ENVIRONMENT", '"development"'
+            buildConfigField "String", "BASE_URL", '"https://dev-api.example.com"'
+            buildConfigField "String", "API_KEY", '"dev-api-key"'
+            buildConfigField "boolean", "DEBUG_MODE", "true"
+            buildConfigField "boolean", "ENABLE_ANALYTICS", "false"
+        }
+        
+        staging {
+            dimension "environment"
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-staging"
+            buildConfigField "String", "ENVIRONMENT", '"staging"'
+            buildConfigField "String", "BASE_URL", '"https://staging-api.example.com"'
+            buildConfigField "String", "API_KEY", '"staging-api-key"'
+            buildConfigField "boolean", "DEBUG_MODE", "false"
+            buildConfigField "boolean", "ENABLE_ANALYTICS", "true"
+        }
+        
+        production {
+            dimension "environment"
+            buildConfigField "String", "ENVIRONMENT", '"production"'
+            buildConfigField "String", "BASE_URL", '"https://api.example.com"'
+            buildConfigField "String", "API_KEY", '"prod-api-key"'
+            buildConfigField "boolean", "DEBUG_MODE", "false"
+            buildConfigField "boolean", "ENABLE_ANALYTICS", "true"
+        }
+    }
+    
+    buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            shrinkResources false
+        }
+        
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+```
+
+### Android Manifest Configuration
+```xml
+<!-- android/app/src/development/AndroidManifest.xml -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:name="${applicationName}"
+        android:label="MyApp Dev"
+        android:icon="@mipmap/ic_launcher_dev"
+        android:allowBackup="true"
+        android:theme="@style/LaunchTheme">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+```
+
+## iOS Build Configuration
+
+### Xcode Project Configuration
+```swift
+// ios/Runner/Config/Development.xcconfig
+ENVIRONMENT = development
+BUNDLE_IDENTIFIER = com.example.myapp.dev
+APP_NAME = MyApp Dev
+BASE_URL = https://dev-api.example.com
+API_KEY = dev-api-key
+DEBUG_MODE = true
+ENABLE_ANALYTICS = false
+
+// ios/Runner/Config/Staging.xcconfig
+ENVIRONMENT = staging
+BUNDLE_IDENTIFIER = com.example.myapp.staging
+APP_NAME = MyApp Staging
+BASE_URL = https://staging-api.example.com
+API_KEY = staging-api-key
+DEBUG_MODE = false
+ENABLE_ANALYTICS = true
+
+// ios/Runner/Config/Production.xcconfig
+ENVIRONMENT = production
+BUNDLE_IDENTIFIER = com.example.myapp
+APP_NAME = MyApp
+BASE_URL = https://api.example.com
+API_KEY = prod-api-key
+DEBUG_MODE = false
+ENABLE_ANALYTICS = true
+```
+
+### iOS Build Schemes
+```xml
+<!-- ios/Runner.xcodeproj/xcshareddata/xcschemes/Development.xcscheme -->
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme LastUpgradeVersion = "1500" version = "1.3">
+    <BuildAction parallelizeBuildables = "YES" buildImplicitDependencies = "YES">
+        <BuildActionEntries>
+            <BuildActionEntry buildForTesting = "YES" buildForRunning = "YES" buildForProfiling = "YES" buildForArchiving = "YES" buildForAnalyzing = "YES">
+                <BuildableReference buildableIdentifier = "primary" blueprintIdentifier = "97C146ED1CF9000F007C117D" buildableName = "Runner.app" blueprintName = "Runner" referencedContainer = "container:Runner.xcodeproj">
+                </BuildableReference>
+            </BuildActionEntry>
+        </BuildActionEntries>
+    </BuildAction>
+    <LaunchAction buildConfiguration = "Debug-Development" selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB" launchStyle = "0" useCustomWorkingDirectory = "NO" ignoresPersistentStateOnLaunch = "NO" debugDocumentVersioning = "YES" debugServiceExtension = "internal" allowLocationSimulation = "YES">
+        <BuildableProductRunnable runnableDebuggingMode = "0">
+            <BuildableReference buildableIdentifier = "primary" blueprintIdentifier = "97C146ED1CF9000F007C117D" buildableName = "Runner.app" blueprintName = "Runner" referencedContainer = "container:Runner.xcodeproj">
+            </BuildableReference>
+        </BuildableProductRunnable>
+    </LaunchAction>
+</Scheme>
+```
+
+## CI/CD Configuration
+
+### GitHub Actions Workflow
+```yaml
+# .github/workflows/build.yml
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-development:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Build development APK
+      run: flutter build apk --flavor development -t lib/main_development.dart --debug
+    
+    - name: Upload development APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: development-apk
+        path: build/app/outputs/flutter-apk/app-development-debug.apk
+
+  build-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Build staging APK
+      run: flutter build apk --flavor staging -t lib/main_staging.dart --release
+    
+    - name: Upload staging APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: staging-apk
+        path: build/app/outputs/flutter-apk/app-staging-release.apk
+
+  build-production:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Build production APK
+      run: flutter build apk --flavor production -t lib/main_production.dart --release
+    
+    - name: Build production App Bundle
+      run: flutter build appbundle --flavor production -t lib/main_production.dart --release
+    
+    - name: Upload production APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: production-apk
+        path: build/app/outputs/flutter-apk/app-production-release.apk
+    
+    - name: Upload production App Bundle
+      uses: actions/upload-artifact@v3
+      with:
+        name: production-bundle
+        path: build/app/outputs/bundle/productionRelease/app-production-release.aab
+```
+
+### GitLab CI Configuration
+```yaml
+# .gitlab-ci.yml
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  FLUTTER_VERSION: "3.16.0"
+
+test:
+  stage: test
+  image: cirrusci/flutter:stable
+  script:
+    - flutter pub get
+    - flutter test
+  only:
+    - merge_requests
+    - main
+    - develop
+
+build-development:
+  stage: build
+  image: cirrusci/flutter:stable
+  script:
+    - flutter pub get
+    - flutter build apk --flavor development -t lib/main_development.dart --debug
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-development-debug.apk
+    expire_in: 1 week
+  only:
+    - develop
+
+build-staging:
+  stage: build
+  image: cirrusci/flutter:stable
+  script:
+    - flutter pub get
+    - flutter build apk --flavor staging -t lib/main_staging.dart --release
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-staging-release.apk
+    expire_in: 1 week
+  only:
+    - develop
+
+build-production:
+  stage: build
+  image: cirrusci/flutter:stable
+  script:
+    - flutter pub get
+    - flutter build apk --flavor production -t lib/main_production.dart --release
+    - flutter build appbundle --flavor production -t lib/main_production.dart --release
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-production-release.apk
+      - build/app/outputs/bundle/productionRelease/app-production-release.aab
+    expire_in: 1 month
+  only:
+    - main
+```
+
+## Docker Configuration
+
+### Multi-stage Dockerfile
+```dockerfile
+# Dockerfile
+FROM ubuntu:20.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    xz-utils \
+    zip \
+    libglu1-mesa \
+    openjdk-8-jdk \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Flutter
+RUN git clone https://github.com/flutter/flutter.git /flutter
+ENV PATH="/flutter/bin:${PATH}"
+
+# Set working directory
+WORKDIR /app
+
+# Copy pubspec files
+COPY pubspec.yaml pubspec.lock ./
+RUN flutter pub get
+
+# Copy source code
+COPY . .
+
+# Build for different environments
+FROM app as development
+RUN flutter build apk --flavor development -t lib/main_development.dart --debug
+
+FROM app as staging
+RUN flutter build apk --flavor staging -t lib/main_staging.dart --release
+
+FROM app as production
+RUN flutter build apk --flavor production -t lib/main_production.dart --release
+RUN flutter build appbundle --flavor production -t lib/main_production.dart --release
+```
+
+### Docker Compose Configuration
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  development:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+    command: flutter run --flavor development -t lib/main_development.dart --debug
+
+  staging:
+    build:
+      context: .
+      target: staging
+    volumes:
+      - .:/app
+    command: flutter run --flavor staging -t lib/main_staging.dart --release
+
+  production:
+    build:
+      context: .
+      target: production
+    volumes:
+      - .:/app
+    command: flutter run --flavor production -t lib/main_production.dart --release
+```
+
+## Deployment Strategies
+
+### Development Deployment
+```bash
+# Local development
+flutter run --flavor development -t lib/main_development.dart --debug
+
+# Development build for testing
+flutter build apk --flavor development -t lib/main_development.dart --debug
+adb install build/app/outputs/flutter-apk/app-development-debug.apk
+```
+
+### Staging Deployment
+```bash
+# Staging build
+flutter build apk --flavor staging -t lib/main_staging.dart --release
+
+# Deploy to staging environment
+# This could involve uploading to a staging server or app distribution platform
+```
+
+### Production Deployment
+```bash
+# Production build
+flutter build appbundle --flavor production -t lib/main_production.dart --release
+
+# Deploy to Google Play Store
+# This would typically involve using the Google Play Console API or manual upload
+```
+
+## Environment-Specific Scripts
+
+### Build Scripts
+```bash
+#!/bin/bash
+# scripts/build.sh
+set -e
+
+ENVIRONMENT=${1:-development}
+BUILD_TYPE=${2:-debug}
+
+echo "Building for $ENVIRONMENT environment with $BUILD_TYPE build type"
+
+flutter clean
+flutter pub get
+
+case $ENVIRONMENT in
+  development)
+    flutter run --flavor development -t lib/main_development.dart --$BUILD_TYPE
+    ;;
+  staging)
+    flutter build apk --flavor staging -t lib/main_staging.dart --$BUILD_TYPE
+    ;;
+  production)
+    flutter build appbundle --flavor production -t lib/main_production.dart --$BUILD_TYPE
+    ;;
+  *)
+    echo "Unknown environment: $ENVIRONMENT"
+    exit 1
+    ;;
+esac
+```
+
+### Deployment Scripts
+```bash
+#!/bin/bash
+# scripts/deploy.sh
+set -e
+
+ENVIRONMENT=${1:-development}
+
+echo "Deploying to $ENVIRONMENT environment"
+
+case $ENVIRONMENT in
+  development)
+    # Deploy to development environment
+    echo "Deploying to development..."
+    # Add deployment commands here
+    ;;
+  staging)
+    # Deploy to staging environment
+    echo "Deploying to staging..."
+    # Add deployment commands here
+    ;;
+  production)
+    # Deploy to production environment
+    echo "Deploying to production..."
+    # Add deployment commands here
+    ;;
+  *)
+    echo "Unknown environment: $ENVIRONMENT"
+    exit 1
+    ;;
+esac
+```
+
+## Monitoring and Analytics
+
+### Environment-Specific Monitoring
+```dart
+class MonitoringConfig {
+  static String getCrashReportingKey() {
+    final config = EnvironmentDetector.getConfig();
+    
+    switch (config.environment) {
+      case Environment.development:
+        return 'dev-crash-reporting-key';
+      case Environment.staging:
+        return 'staging-crash-reporting-key';
+      case Environment.production:
+        return 'prod-crash-reporting-key';
+    }
+  }
+  
+  static String getAnalyticsKey() {
+    final config = EnvironmentDetector.getConfig();
+    
+    switch (config.environment) {
+      case Environment.development:
+        return 'dev-analytics-key';
+      case Environment.staging:
+        return 'staging-analytics-key';
+      case Environment.production:
+        return 'prod-analytics-key';
+    }
+  }
+}
+```
+
+## Best Practices
+
+### Build Optimization
+- **Tree Shaking:** Ensure unused code is removed in production builds
+- **Code Splitting:** Use code splitting for environment-specific features
+- **Asset Optimization:** Optimize assets for each environment
+- **Bundle Size:** Monitor and optimize bundle size for each flavor
+
+### Security
+- **Environment Variables:** Use environment variables for sensitive configuration
+- **Build-time Injection:** Inject secrets at build time rather than runtime
+- **Secure Storage:** Use secure storage for sensitive data in production
+
+### Testing
+- **Environment-Specific Tests:** Write tests that work across all environments
+- **Integration Tests:** Test environment-specific configurations
+- **Widget Tests:** Test UI components with different environment configurations
+
+### Deployment
+- **CI/CD Integration:** Integrate flavor builds into CI/CD pipelines
+- **Environment Promotion:** Use proper environment promotion strategies
+- **Rollback Strategy:** Implement rollback strategies for each environment
+- **Monitoring:** Monitor deployments across all environments

@@ -20,20 +20,60 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.changeme.app.changeme"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "environment"
+    
+    productFlavors {
+        create("development") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "ENVIRONMENT", "\"development\"")
+            buildConfigField("String", "BASE_URL", "\"https://dev-api.example.com\"")
+            buildConfigField("String", "API_KEY", "\"dev-api-key\"")
+            buildConfigField("boolean", "DEBUG_MODE", "true")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
+        }
+        
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            buildConfigField("String", "ENVIRONMENT", "\"staging\"")
+            buildConfigField("String", "BASE_URL", "\"https://staging-api.example.com\"")
+            buildConfigField("String", "API_KEY", "\"staging-api-key\"")
+            buildConfigField("boolean", "DEBUG_MODE", "false")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "true")
+        }
+        
+        create("production") {
+            dimension = "environment"
+            buildConfigField("String", "ENVIRONMENT", "\"production\"")
+            buildConfigField("String", "BASE_URL", "\"https://api.example.com\"")
+            buildConfigField("String", "API_KEY", "\"prod-api-key\"")
+            buildConfigField("boolean", "DEBUG_MODE", "false")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "true")
+        }
+    }
+
     buildTypes {
+        debug {
+            debuggable = true
+            minifyEnabled = false
+            shrinkResources = false
+        }
+        
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            debuggable = false
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("debug")
         }
     }

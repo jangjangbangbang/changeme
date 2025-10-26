@@ -1,0 +1,57 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Development",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main_development.dart",
+            "args": [
+                "--flavor",
+                "development",
+                "--dart-define=ENVIRONMENT=development",
+                "--dart-define=DEBUG_MODE=true"
+            ],
+            "flutterMode": "debug",
+        },
+        {
+            "name": "Staging",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main_staging.dart",
+            "args": [
+                "--flavor",
+                "staging",
+                "--dart-define=ENVIRONMENT=staging"
+            ],
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Production",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main_production.dart",
+            "args": [
+                "--flavor",
+                "production",
+                "--dart-define=ENVIRONMENT=production"
+            ],
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Web Development",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main_development.dart",
+            "args": [
+                "--flavor",
+                "development",
+                "--dart-define=ENVIRONMENT=development",
+                "--web-renderer",
+                "html"
+            ],
+            "flutterMode": "debug",
+            // "deviceId": "chrome"
+        },
+    ],
+}

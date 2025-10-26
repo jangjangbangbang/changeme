@@ -1,0 +1,374 @@
+---
+description: Flutter app flavors configuration for development, staging, and production environments
+---
+
+# Flutter App Flavors Configuration
+
+Follow these patterns for implementing and managing Flutter app flavors across development, staging, and production environments.
+
+## Flavor Architecture
+
+### Environment Configuration
+- **Environment Enum:** Define a clear environment enum with development, staging, and production values
+- **Environment Detection:** Use compile-time constants or build-time configuration to determine the current environment
+- **Configuration Management:** Centralize environment-specific configuration in dedicated classes
+
+### Flavor Structure
+```
+lib/
+├── core/
+│   ├── config/
+│   │   ├── app_config.dart
+│   │   ├── development_config.dart
+│   │   ├── staging_config.dart
+│   │   └── production_config.dart
+│   └── constants/
+│       └── app_constants.dart
+├── main.dart
+├── main_development.dart
+├── main_staging.dart
+└── main_production.dart
+```
+
+## Environment Configuration
+
+### App Configuration Pattern
+```dart
+// lib/core/config/app_config.dart
+abstract class AppConfig {
+  String get appName;
+  String get baseUrl;
+  String get apiKey;
+  bool get isDebugMode;
+  Duration get apiTimeout;
+  String get environment;
+}
+
+// lib/core/config/development_config.dart
+class DevelopmentConfig implements AppConfig {
+  @override
+  String get appName => 'MyApp Dev';
+  
+  @override
+  String get baseUrl => 'https://dev-api.example.com';
+  
+  @override
+  String get apiKey => 'dev-api-key';
+  
+  @override
+  bool get isDebugMode => true;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 30);
+  
+  @override
+  String get environment => 'development';
+}
+```
+
+### Environment-Specific Constants
+- **API Endpoints:** Use different API endpoints for each environment
+- **API Keys:** Use environment-specific API keys and secrets
+- **Debug Features:** Enable/disable debug features based on environment
+- **Logging Levels:** Configure appropriate logging levels per environment
+
+## Flavor Implementation
+
+### Main Entry Points
+- **Development:** Create `main_development.dart` for development builds
+- **Staging:** Create `main_staging.dart` for staging builds  
+- **Production:** Create `main_production.dart` for production builds
+- **Default:** Keep `main.dart` as the default entry point
+
+### Environment-Specific Main Files
+```dart
+// main_development.dart
+import 'package:flutter/material.dart';
+import 'core/config/development_config.dart';
+import 'main.dart' as app;
+
+void main() {
+  app.main(DevelopmentConfig());
+}
+
+// main_staging.dart
+import 'package:flutter/material.dart';
+import 'core/config/staging_config.dart';
+import 'main.dart' as app;
+
+void main() {
+  app.main(StagingConfig());
+}
+
+// main_production.dart
+import 'package:flutter/material.dart';
+import 'core/config/production_config.dart';
+import 'main.dart' as app;
+
+void main() {
+  app.main(ProductionConfig());
+}
+```
+
+## Build Configuration
+
+### Android Flavor Configuration
+- **Build Variants:** Configure build variants in `android/app/build.gradle`
+- **Flavor Dimensions:** Define flavor dimensions for different environment combinations
+- **Application ID Suffixes:** Use different application ID suffixes for each flavor
+- **Build Config Fields:** Use `buildConfigField` to inject environment-specific values
+
+### iOS Configuration
+- **Build Schemes:** Create separate build schemes for each environment
+- **Configuration Files:** Use different `.xcconfig` files for each environment
+- **Bundle Identifiers:** Use different bundle identifiers for each flavor
+- **Info.plist Values:** Configure environment-specific values in Info.plist
+
+## Environment-Specific Features
+
+### Development Environment
+- **Debug Tools:** Enable debug tools, logging, and development features
+- **Hot Reload:** Optimize for hot reload and fast development cycles
+- **Mock Data:** Use mock data and fake services for development
+- **Debug Overlays:** Show debug information and performance metrics
+
+### Staging Environment
+- **Production-like:** Mirror production environment as closely as possible
+- **Testing Data:** Use realistic test data that mirrors production
+- **Performance Testing:** Enable performance monitoring and testing
+- **Beta Features:** Test new features before production release
+
+### Production Environment
+- **Optimized Builds:** Use optimized, minified builds
+- **Security:** Implement production-level security measures
+- **Performance:** Optimize for performance and battery life
+- **Analytics:** Enable production analytics and crash reporting
+
+## Configuration Management
+
+### Dependency Injection
+- **Environment Providers:** Use Riverpod providers to inject environment-specific configuration
+- **Service Locators:** Register different service implementations based on environment
+- **Mock Services:** Use mock services in development and staging environments
+
+### Environment Detection
+```dart
+// Environment detection utility
+class Environment {
+  static const String development = 'development';
+  static const String staging = 'staging';
+  static const String production = 'production';
+  
+  static String get current {
+    // Use compile-time constants or build-time configuration
+    return const String.fromEnvironment('ENVIRONMENT', defaultValue: development);
+  }
+  
+  static bool get isDevelopment => current == development;
+  static bool get isStaging => current == staging;
+  static bool get isProduction => current == production;
+}
+```
+
+## Build Commands
+
+### Development Builds
+```bash
+# Development build
+flutter run --flavor development -t lib/main_development.dart
+
+# Development build with specific target
+flutter run --flavor development -t lib/main_development.dart --dart-define=ENVIRONMENT=development
+```
+
+### Staging Builds
+```bash
+# Staging build
+flutter run --flavor staging -t lib/main_staging.dart
+
+# Staging build with specific target
+flutter run --flavor staging -t lib/main_staging.dart --dart-define=ENVIRONMENT=staging
+```
+
+### Production Builds
+```bash
+# Production build
+flutter build apk --flavor production -t lib/main_production.dart
+
+# Production build with specific target
+flutter build apk --flavor production -t lib/main_production.dart --dart-define=ENVIRONMENT=production
+```
+
+## VS Code Launch Configuration
+
+### Launch.json Configuration
+Create `.vscode/launch.json` to enable debugging different flavors directly from VS Code:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Development Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Development Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=ENVIRONMENT=development"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Staging Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_staging.dart",
+      "args": [
+        "--flavor",
+        "staging",
+        "--dart-define=ENVIRONMENT=staging"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Staging Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_staging.dart",
+      "args": [
+        "--flavor",
+        "staging",
+        "--dart-define=ENVIRONMENT=staging"
+      ],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Production Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=ENVIRONMENT=production"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Production Profile",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=ENVIRONMENT=production"
+      ],
+      "flutterMode": "profile"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Environments Debug",
+      "configurations": [
+        "Development Debug",
+        "Staging Debug",
+        "Production Debug"
+      ]
+    }
+  ]
+}
+```
+
+### Launch Configuration Features
+- **Environment-Specific Debugging:** Each flavor has its own debug configuration
+- **Profile Mode Support:** Include profile mode for performance testing
+- **Compound Configurations:** Run multiple environments simultaneously
+- **Dart Defines:** Pass environment variables through launch arguments
+- **Flutter Mode Selection:** Choose between debug, profile, and release modes
+
+## Testing with Flavors
+
+### Environment-Specific Tests
+- **Unit Tests:** Write tests that work across all environments
+- **Integration Tests:** Test environment-specific configurations
+- **Widget Tests:** Test UI components with different environment configurations
+
+### Test Configuration
+```dart
+// Test configuration for different environments
+class TestConfig {
+  static AppConfig getConfigForEnvironment(String environment) {
+    switch (environment) {
+      case 'development':
+        return DevelopmentConfig();
+      case 'staging':
+        return StagingConfig();
+      case 'production':
+        return ProductionConfig();
+      default:
+        return DevelopmentConfig();
+    }
+  }
+}
+```
+
+## Security Considerations
+
+### Environment-Specific Secrets
+- **API Keys:** Use different API keys for each environment
+- **Database Credentials:** Use separate databases for each environment
+- **Third-party Services:** Configure different third-party service accounts
+- **Security Headers:** Implement environment-specific security configurations
+
+### Secret Management
+- **Environment Variables:** Use environment variables for sensitive configuration
+- **Build-time Injection:** Inject secrets at build time rather than runtime
+- **Secure Storage:** Use secure storage for sensitive data in production
+
+## Monitoring and Analytics
+
+### Environment-Specific Monitoring
+- **Crash Reporting:** Configure different crash reporting for each environment
+- **Analytics:** Use separate analytics accounts for each environment
+- **Performance Monitoring:** Enable appropriate performance monitoring per environment
+- **Logging:** Configure different logging levels and destinations
+
+### Debug Information
+- **Development:** Show detailed debug information and logs
+- **Staging:** Show limited debug information for testing
+- **Production:** Hide debug information and use production logging
+
+## Best Practices
+
+### Configuration Management
+- **Centralized Configuration:** Keep all environment-specific configuration in dedicated classes
+- **Type Safety:** Use strongly-typed configuration classes
+- **Validation:** Validate configuration values at startup
+- **Documentation:** Document environment-specific requirements and setup
+
+### Build Optimization
+- **Tree Shaking:** Ensure unused code is removed in production builds
+- **Code Splitting:** Use code splitting for environment-specific features
+- **Asset Optimization:** Optimize assets for each environment
+- **Bundle Size:** Monitor and optimize bundle size for each flavor
+
+### Deployment
+- **CI/CD Integration:** Integrate flavor builds into CI/CD pipelines
+- **Environment Promotion:** Use proper environment promotion strategies
+- **Rollback Strategy:** Implement rollback strategies for each environment
+- **Monitoring:** Monitor deployments across all environments

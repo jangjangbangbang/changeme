@@ -1,0 +1,660 @@
+---
+description: Testing patterns and strategies for Flutter app flavors across different environments
+---
+
+# Flavor Testing Patterns
+
+Follow these testing patterns for Flutter applications with multiple flavors across development, staging, and production environments.
+
+## Testing Strategy
+
+### Environment-Specific Testing
+- **Unit Tests:** Write tests that work across all environments
+- **Widget Tests:** Test UI components with different environment configurations
+- **Integration Tests:** Test environment-specific configurations and features
+- **End-to-End Tests:** Test complete user flows across different environments
+
+### Test Organization
+```
+test/
+├── unit/
+│   ├── config/
+│   │   ├── development_config_test.dart
+│   │   ├── staging_config_test.dart
+│   │   └── production_config_test.dart
+│   └── services/
+├── widget/
+│   ├── screens/
+│   └── components/
+├── integration/
+│   ├── development_integration_test.dart
+│   ├── staging_integration_test.dart
+│   └── production_integration_test.dart
+└── helpers/
+    ├── test_config.dart
+    ├── mock_services.dart
+    └── test_utils.dart
+```
+
+## Test Configuration
+
+### Environment-Specific Test Config
+```dart
+// test/helpers/test_config.dart
+class TestConfig implements EnvironmentConfig {
+  @override
+  Environment get environment => Environment.development;
+  
+  @override
+  String get appName => 'Test App';
+  
+  @override
+  String get baseUrl => 'https://test-api.example.com';
+  
+  @override
+  String get apiKey => 'test-api-key';
+  
+  @override
+  bool get isDebugMode => true;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 5);
+  
+  @override
+  String get logLevel => 'DEBUG';
+  
+  @override
+  bool get enableAnalytics => false;
+  
+  @override
+  bool get enableCrashReporting => false;
+  
+  @override
+  String get databaseUrl => 'sqlite://test.db';
+  
+  @override
+  Map<String, String> get additionalHeaders => {
+    'X-Environment': 'test',
+    'X-Test': 'true',
+  };
+}
+
+// Development test config
+class DevelopmentTestConfig implements EnvironmentConfig {
+  @override
+  Environment get environment => Environment.development;
+  
+  @override
+  String get appName => 'Test App Dev';
+  
+  @override
+  String get baseUrl => 'https://test-dev-api.example.com';
+  
+  @override
+  String get apiKey => 'test-dev-api-key';
+  
+  @override
+  bool get isDebugMode => true;
+  
+  @override
+  Duration get apiTimeout => const Duration(seconds: 10);
+  
+  @override
+  String get logLevel => 'DEBUG';
+  
+  @override
+  bool get enableAnalytics => false;
+  
+  @override
+  bool get enableCrashReporting => false;
+  
+  @override
+  String get databaseUrl => 'sqlite://test-dev.db';
+  
+  @override
+  Map<String, String> get additionalHeaders => {
+    'X-Environment': 'test-development',
+    'X-Test': 'true',
+  };
+}
+```
+
+### Test Setup and Teardown
+```dart
+// test/helpers/test_setup.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'test_config.dart';
+
+class TestSetup {
+  static void setupAll() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+  }
+  
+  static void setup() {
+    // Set up test environment
+    // This would typically involve setting up mocks and test data
+  }
+  
+  static void teardown() {
+    // Clean up test environment
+    // This would typically involve cleaning up mocks and test data
+  }
+}
+
+// test/helpers/test_providers.dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'test_config.dart';
+
+final testConfigProvider = Provider<EnvironmentConfig>((ref) {
+  return TestConfig();
+});
+
+final testEnvironmentProvider = Provider<Environment>((ref) {
+  return ref.watch(testConfigProvider).environment;
+});
+```
+
+## Unit Testing
+
+### Configuration Testing
+```dart
+// test/unit/config/development_config_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:myapp/core/config/development_config.dart';
+
+void main() {
+  group('DevelopmentConfig', () {
+    late DevelopmentConfig config;
+    
+    setUp(() {
+      config = DevelopmentConfig();
+    });
+    
+    test('should have correct environment', () {
+      expect(config.environment, Environment.development);
+    });
+    
+    test('should have correct app name', () {
+      expect(config.appName, 'MyApp Dev');
+    });
+    
+    test('should have correct base URL', () {
+      expect(config.baseUrl, 'https://dev-api.example.com');
+    });
+    
+    test('should have debug mode enabled', () {
+      expect(config.isDebugMode, true);
+    });
+    
+    test('should have correct API timeout', () {
+      expect(config.apiTimeout, const Duration(seconds: 30));
+    });
+    
+    test('should have correct log level', () {
+      expect(config.logLevel, 'DEBUG');
+    });
+    
+    test('should have analytics disabled', () {
+      expect(config.enableAnalytics, false);
+    });
+    
+    test('should have crash reporting disabled', () {
+      expect(config.enableCrashReporting, false);
+    });
+    
+    test('should have correct additional headers', () {
+      expect(config.additionalHeaders, {
+        'X-Environment': 'development',
+        'X-Debug': 'true',
+      });
+    });
+  });
+}
+```
+
+### Service Testing
+```dart
+// test/unit/services/api_service_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:myapp/core/services/api_service.dart';
+import 'package:myapp/core/config/development_config.dart';
+
+class MockApiService extends Mock implements ApiService {}
+
+void main() {
+  group('ApiService', () {
+    late ApiService apiService;
+    late DevelopmentConfig config;
+    
+    setUp(() {
+      apiService = MockApiService();
+      config = DevelopmentConfig();
+    });
+    
+    test('should use correct base URL for development', () {
+      when(apiService.baseUrl).thenReturn(config.baseUrl);
+      expect(apiService.baseUrl, 'https://dev-api.example.com');
+    });
+    
+    test('should use correct API key for development', () {
+      when(apiService.apiKey).thenReturn(config.apiKey);
+      expect(apiService.apiKey, 'dev-api-key-12345');
+    });
+    
+    test('should have correct timeout for development', () {
+      when(apiService.timeout).thenReturn(config.apiTimeout);
+      expect(apiService.timeout, const Duration(seconds: 30));
+    });
+  });
+}
+```
+
+## Widget Testing
+
+### Environment-Specific Widget Tests
+```dart
+// test/widget/screens/home_screen_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myapp/features/home/presentation/screens/home_screen.dart';
+import 'package:myapp/core/config/development_config.dart';
+import 'test_helpers/test_providers.dart';
+
+void main() {
+  group('HomeScreen', () {
+    testWidgets('should display development environment indicator', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            testConfigProvider.overrideWithValue(DevelopmentConfig()),
+          ],
+          child: MaterialApp(
+            home: HomeScreen(),
+          ),
+        ),
+      );
+      
+      expect(find.text('Development Environment'), findsOneWidget);
+      expect(find.text('Debug Mode: ON'), findsOneWidget);
+    });
+    
+    testWidgets('should display staging environment indicator', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            testConfigProvider.overrideWithValue(StagingConfig()),
+          ],
+          child: MaterialApp(
+            home: HomeScreen(),
+          ),
+        ),
+      );
+      
+      expect(find.text('Staging Environment'), findsOneWidget);
+      expect(find.text('Debug Mode: OFF'), findsOneWidget);
+    });
+    
+    testWidgets('should display production environment indicator', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            testConfigProvider.overrideWithValue(ProductionConfig()),
+          ],
+          child: MaterialApp(
+            home: HomeScreen(),
+          ),
+        ),
+      );
+      
+      expect(find.text('Production Environment'), findsOneWidget);
+      expect(find.text('Debug Mode: OFF'), findsOneWidget);
+    });
+  });
+}
+```
+
+### Environment-Specific UI Tests
+```dart
+// test/widget/components/environment_banner_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myapp/core/widgets/environment_banner.dart';
+import 'package:myapp/core/config/development_config.dart';
+import 'test_helpers/test_providers.dart';
+
+void main() {
+  group('EnvironmentBanner', () {
+    testWidgets('should show development banner', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            testConfigProvider.overrideWithValue(DevelopmentConfig()),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: EnvironmentBanner(),
+            ),
+          ),
+        ),
+      );
+      
+      expect(find.text('DEV'), findsOneWidget);
+      expect(find.byType(Container), findsOneWidget);
+    });
+    
+    testWidgets('should show staging banner', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            testConfigProvider.overrideWithValue(StagingConfig()),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: EnvironmentBanner(),
+            ),
+          ),
+          ),
+        ),
+      );
+      
+      expect(find.text('STAGING'), findsOneWidget);
+      expect(find.byType(Container), findsOneWidget);
+    });
+    
+    testWidgets('should not show banner in production', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            testConfigProvider.overrideWithValue(ProductionConfig()),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: EnvironmentBanner(),
+            ),
+          ),
+        ),
+      );
+      
+      expect(find.text('DEV'), findsNothing);
+      expect(find.text('STAGING'), findsNothing);
+      expect(find.byType(Container), findsNothing);
+    });
+  });
+}
+```
+
+## Integration Testing
+
+### Environment-Specific Integration Tests
+```dart
+// test/integration/development_integration_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:myapp/main.dart' as app;
+import 'package:myapp/core/config/development_config.dart';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  
+  group('Development Integration Tests', () {
+    testWidgets('should load development environment', (tester) async {
+      app.main(DevelopmentConfig());
+      await tester.pumpAndSettle();
+      
+      expect(find.text('Development Environment'), findsOneWidget);
+      expect(find.text('Debug Mode: ON'), findsOneWidget);
+    });
+    
+    testWidgets('should connect to development API', (tester) async {
+      app.main(DevelopmentConfig());
+      await tester.pumpAndSettle();
+      
+      // Test API connection
+      expect(find.text('Connected to Development API'), findsOneWidget);
+    });
+    
+    testWidgets('should show development-specific features', (tester) async {
+      app.main(DevelopmentConfig());
+      await tester.pumpAndSettle();
+      
+      // Test development-specific features
+      expect(find.text('Debug Tools'), findsOneWidget);
+      expect(find.text('Performance Metrics'), findsOneWidget);
+    });
+  });
+}
+```
+
+### End-to-End Testing
+```dart
+// test/integration/e2e_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:myapp/main.dart' as app;
+import 'package:myapp/core/config/development_config.dart';
+import 'package:myapp/core/config/staging_config.dart';
+import 'package:myapp/core/config/production_config.dart';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  
+  group('End-to-End Tests', () {
+    testWidgets('should work in development environment', (tester) async {
+      app.main(DevelopmentConfig());
+      await tester.pumpAndSettle();
+      
+      // Test complete user flow
+      await tester.tap(find.text('Login'));
+      await tester.pumpAndSettle();
+      
+      await tester.enterText(find.byType(TextField), 'test@example.com');
+      await tester.enterText(find.byType(TextField).at(1), 'password');
+      
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+      
+      expect(find.text('Welcome to Development'), findsOneWidget);
+    });
+    
+    testWidgets('should work in staging environment', (tester) async {
+      app.main(StagingConfig());
+      await tester.pumpAndSettle();
+      
+      // Test complete user flow
+      await tester.tap(find.text('Login'));
+      await tester.pumpAndSettle();
+      
+      await tester.enterText(find.byType(TextField), 'test@example.com');
+      await tester.enterText(find.byType(TextField).at(1), 'password');
+      
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+      
+      expect(find.text('Welcome to Staging'), findsOneWidget);
+    });
+    
+    testWidgets('should work in production environment', (tester) async {
+      app.main(ProductionConfig());
+      await tester.pumpAndSettle();
+      
+      // Test complete user flow
+      await tester.tap(find.text('Login'));
+      await tester.pumpAndSettle();
+      
+      await tester.enterText(find.byType(TextField), 'test@example.com');
+      await tester.enterText(find.byType(TextField).at(1), 'password');
+      
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+      
+      expect(find.text('Welcome to Production'), findsOneWidget);
+    });
+  });
+}
+```
+
+## Mock Services
+
+### Environment-Specific Mocks
+```dart
+// test/helpers/mock_services.dart
+import 'package:mockito/mockito.dart';
+import 'package:myapp/core/services/api_service.dart';
+import 'package:myapp/core/services/analytics_service.dart';
+import 'package:myapp/core/services/crash_reporting_service.dart';
+
+class MockApiService extends Mock implements ApiService {}
+class MockAnalyticsService extends Mock implements AnalyticsService {}
+class MockCrashReportingService extends Mock implements CrashReportingService {}
+
+class TestServices {
+  static MockApiService createMockApiService() {
+    final mockApiService = MockApiService();
+    
+    when(mockApiService.baseUrl).thenReturn('https://test-api.example.com');
+    when(mockApiService.apiKey).thenReturn('test-api-key');
+    when(mockApiService.timeout).thenReturn(const Duration(seconds: 5));
+    
+    return mockApiService;
+  }
+  
+  static MockAnalyticsService createMockAnalyticsService() {
+    final mockAnalyticsService = MockAnalyticsService();
+    
+    when(mockAnalyticsService.isEnabled).thenReturn(false);
+    when(mockAnalyticsService.trackingId).thenReturn('test-tracking-id');
+    
+    return mockAnalyticsService;
+  }
+  
+  static MockCrashReportingService createMockCrashReportingService() {
+    final mockCrashReportingService = MockCrashReportingService();
+    
+    when(mockCrashReportingService.isEnabled).thenReturn(false);
+    when(mockCrashReportingService.apiKey).thenReturn('test-crash-reporting-key');
+    
+    return mockCrashReportingService;
+  }
+}
+```
+
+## Test Utilities
+
+### Environment Testing Utilities
+```dart
+// test/helpers/test_utils.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myapp/core/config/environment_config.dart';
+import 'test_providers.dart';
+
+class TestUtils {
+  static Widget createTestWidget({
+    required Widget child,
+    EnvironmentConfig? config,
+    List<Override> overrides = const [],
+  }) {
+    return ProviderScope(
+      overrides: [
+        if (config != null) testConfigProvider.overrideWithValue(config),
+        ...overrides,
+      ],
+      child: MaterialApp(
+        home: Scaffold(body: child),
+      ),
+    );
+  }
+  
+  static Future<void> pumpAndSettle(WidgetTester tester) async {
+    await tester.pumpAndSettle();
+  }
+  
+  static Future<void> tapAndSettle(WidgetTester tester, Finder finder) async {
+    await tester.tap(finder);
+    await tester.pumpAndSettle();
+  }
+  
+  static Future<void> enterTextAndSettle(WidgetTester tester, Finder finder, String text) async {
+    await tester.enterText(finder, text);
+    await tester.pumpAndSettle();
+  }
+}
+```
+
+## Test Commands
+
+### Environment-Specific Test Commands
+```bash
+#!/bin/bash
+# scripts/test_development.sh
+echo "Running development tests..."
+flutter test --dart-define=ENVIRONMENT=development
+
+#!/bin/bash
+# scripts/test_staging.sh
+echo "Running staging tests..."
+flutter test --dart-define=ENVIRONMENT=staging
+
+#!/bin/bash
+# scripts/test_production.sh
+echo "Running production tests..."
+flutter test --dart-define=ENVIRONMENT=production
+
+#!/bin/bash
+# scripts/test_all.sh
+echo "Running all environment tests..."
+flutter test --dart-define=ENVIRONMENT=development
+flutter test --dart-define=ENVIRONMENT=staging
+flutter test --dart-define=ENVIRONMENT=production
+```
+
+### Integration Test Commands
+```bash
+#!/bin/bash
+# scripts/integration_test_development.sh
+echo "Running development integration tests..."
+flutter test integration_test/development_integration_test.dart
+
+#!/bin/bash
+# scripts/integration_test_staging.sh
+echo "Running staging integration tests..."
+flutter test integration_test/staging_integration_test.dart
+
+#!/bin/bash
+# scripts/integration_test_production.sh
+echo "Running production integration tests..."
+flutter test integration_test/production_integration_test.dart
+```
+
+## Best Practices
+
+### Test Organization
+- **Environment-Specific Tests:** Create separate test files for each environment
+- **Shared Test Utilities:** Use shared test utilities and helpers
+- **Mock Services:** Create environment-specific mock services
+- **Test Data:** Use realistic test data that mirrors production
+
+### Test Coverage
+- **Unit Test Coverage:** Aim for high unit test coverage across all environments
+- **Widget Test Coverage:** Test UI components with different environment configurations
+- **Integration Test Coverage:** Test environment-specific configurations and features
+- **End-to-End Test Coverage:** Test complete user flows across different environments
+
+### Test Performance
+- **Parallel Testing:** Run tests in parallel when possible
+- **Test Isolation:** Ensure tests are isolated and don't depend on each other
+- **Test Data Management:** Use efficient test data management strategies
+- **Test Environment Setup:** Optimize test environment setup and teardown
+
+### Test Maintenance
+- **Test Documentation:** Document test requirements and expectations
+- **Test Review:** Regularly review and update tests
+- **Test Refactoring:** Refactor tests to improve maintainability
+- **Test Monitoring:** Monitor test performance and reliability

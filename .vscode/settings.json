@@ -1,0 +1,17 @@
+{
+    "dart.flutterSdkPath": "/path/to/flutter",
+    "dart.debugExternalLibraries": false,
+    "dart.debugSdkLibraries": false,
+    "dart.previewFlutterUiGuides": true,
+    "dart.previewFlutterUiGuidesCustomTracking": true,
+    "dart.flutterHotReloadOnSave": "all",
+    "dart.openDevTools": "flutter",
+    "dart.flutterCreateAndroidLanguage": "kotlin",
+    "dart.flutterCreateIOSLanguage": "swift",
+    "dart.flutterCreateOrganization": "com.example",
+    "dart.flutterCreatePlatforms": [
+        "android",
+        "ios",
+        "web"
+    ]
+}

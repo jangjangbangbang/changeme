@@ -1,0 +1,11 @@
+#include "Generated.xcconfig"
+#include "Debug.xcconfig"
+
+FLUTTER_BUILD_MODE = debug
+ENVIRONMENT = development
+BUNDLE_IDENTIFIER = com.changeme.app.changeme.dev
+APP_NAME = MyApp Dev
+BASE_URL = https://dev-api.example.com
+API_KEY = dev-api-key
+DEBUG_MODE = true
+ENABLE_ANALYTICS = false
